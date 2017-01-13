@@ -1,22 +1,25 @@
 #include "myserver.h"
 
-MyServer::MyServer(QObject *parent) : QObject(parent)
+MyServer::MyServer(QObject *parent):
+    QTcpServer(parent)
 {
-    server = new QTcpServer(this);
-    connect(server, SIGNAL(newConnection()), this, SLOT(newConnection()));
-    if(!server->listen(QHostAddress::Any, 1234))
+
+}
+void MyServer::StartServer()
+{
+    if(!this->listen(QHostAddress::Any, 1234))
     {
-        qDebug()<<"Server could not start";
+        qDebug()<<"Could not start server";
     }
     else
     {
-        qDebug()<<"Server started";
+        qDebug()<<"Listening...";
     }
 }
-void MyServer::newConnection()
+void MyServer::incomingConnection(int socketDescriptor)
 {
-    QTcpSocket *socket = server->nextPendingConnection();
-    socket->write("hello lume!\r\n");
-    socket->flush();
-    socket->close();
+    qDebug()<<socketDescriptor<<" Connecting...";
+    MyThread *thread = new MyThread(socketDescriptor, this);
+    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+    thread->start();
 }
